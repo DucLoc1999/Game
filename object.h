@@ -40,7 +40,7 @@ class object{
         int dir;
         int step;
         SDL_Rect rect;
-        bool isEnemy = true;
+        bool isEnemy;
 
         //int GetStep(){return (this->step);}
         SDL_Rect NewRect(int direction);
@@ -52,7 +52,7 @@ class object{
 class Bullet : public object
 {
     public:
-        bool isShooting = false;
+        bool isShooting;
         Bullet(int x, int y, int direction, bool isEnemy);
         ~Bullet();
 

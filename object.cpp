@@ -72,7 +72,6 @@ Bullet::Bullet(int x, int y, int direction, bool isenemy)
 
 Bullet::~Bullet()
 {
-
 }
 
 void Bullet::GetMove()
@@ -126,12 +125,15 @@ Enemy_Tank::Enemy_Tank(SDL_Rect yourTank, vector<Enemy_Tank> enemy)// constructo
     {
         Bullet pre_Bullet(0, 0, UP, this->isEnemy);
         (this->Bullet_Box).push_back(pre_Bullet);
+        printf("%d\n",i);
     }
 }
 
 Enemy_Tank::~Enemy_Tank()
 {
-
+    for(int i = AMO_SIZE; i >= 0; i--)
+        this->Bullet_Box[i].~Bullet();
+    this->Bullet_Box.clear();
 }
 
 void Enemy_Tank::Reborn(SDL_Rect yourTank, vector<Enemy_Tank> enemy)
@@ -295,7 +297,9 @@ My_Tank::My_Tank(int x, int y, int direction)// constructor
 
 My_Tank::~My_Tank()
 {
-
+    for(int i = AMO_SIZE; i >= 0; i--)
+        this->Bullet_Box[i].~Bullet();
+    this->Bullet_Box.clear();
 }
 
 void My_Tank::GetMove(SDL_Event event, const vector<Enemy_Tank> enemy)
