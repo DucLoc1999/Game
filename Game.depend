@@ -1,11 +1,11 @@
 # depslib dependency file v1.0
-1523523262 source:c:\users\sony\desktop\game\main.cpp
+1524061508 source:c:\users\sony\desktop\game\main.cpp
 	"object.h"
 
-1523447867 source:c:\users\sony\desktop\game\myfunction.cpp
+1524127256 source:c:\users\sony\desktop\game\myfunction.cpp
 	"myFunction.h"
 
-1523525671 source:c:\users\sony\desktop\game\object.cpp
+1524125480 source:c:\users\sony\desktop\game\object.cpp
 	"myFunction.h"
 	"object.h"
 
@@ -13,19 +13,21 @@
 	"gameObject.h"
 	"object.h"
 
-1522836734 c:\users\sony\desktop\game\myfunction.h
+1524127256 c:\users\sony\desktop\game\myfunction.h
 	<iostream>
 	<stdio.h>
 	<SDL.h>
 	<SDL_image.h>
+	<SDL_ttf.h>
 	<cstdlib>
 	<ctime>
+	<sstream>
 	"object.h"
 
 1521621907 c:\users\sony\desktop\game\gameobject.h
 	"object.h"
 
-1523523262 c:\users\sony\desktop\game\object.h
+1524129025 c:\users\sony\desktop\game\object.h
 	"myFunction.h"
 	<ctime>
 	<vector>

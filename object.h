@@ -5,22 +5,21 @@
 #include <ctime>
 #include <vector>
 
-#define BULLET_SIZE  16
-#define TANK_SIZE 64
-#define AMO_SIZE 30
+#define BULLET_SIZE  12
+#define TANK_SIZE 61
+#define AMO_SIZE 20
+#define RELOAD_TIME 100
 
-#define BULLET_STEP 4
+#define BULLET_STEP 6
 
 #define NUM_OF_ENEMY 5
 #define ENEMY_STEP 5
 #define ENEMY_LIFE 1
 #define ENEMY_THINK_TIME 5
-#define ENEMY_RELOAD_TIME 120
 #define ENEMY_REBORN_TIME 200
 
 #define MY_STEP 2
 #define MY_LIFE 5
-#define MY_RELOAD_TIME 100
 //#define
 enum DIRECTION
 {
@@ -40,10 +39,10 @@ class object{
         int dir;
         int step;
         SDL_Rect rect;
-        bool isEnemy = true;
+        bool isEnemy;
 
         //int GetStep(){return (this->step);}
-        SDL_Rect NewRect(int direction);
+        SDL_Rect NewRect(const int& direction);
 
         void Draw();
 };
@@ -52,16 +51,14 @@ class object{
 class Bullet : public object
 {
     public:
-        bool isShooting = false;
-        Bullet(int x, int y, int direction, bool isEnemy);
+        bool isShooting;
+        Bullet(const int& x, const int& y, const int& direction, const bool& isEnemy);
         ~Bullet();
 
-
-        void setPos(int x, int y, int direction);
+        void setPos(const int& x, const int& y, const int& direction);
 
         void GetMove();
 };
-
 
 
 class Enemy_Tank : public object
@@ -70,14 +67,17 @@ class Enemy_Tank : public object
         int life;
         int thinkTime;
         int reloadTime;
+        float reloadTimeRate;
         int rebornTime;
+        int point;
+        int deadTimes;
         vector<Bullet> Bullet_Box;
 
-        Enemy_Tank(SDL_Rect yourTank, vector<Enemy_Tank> enemy);
+        Enemy_Tank(const SDL_Rect& yourTank, const vector<Enemy_Tank>& enemy);
         ~Enemy_Tank();
 
-        void Reborn(SDL_Rect yourTank, vector<Enemy_Tank> enemy);
-        void getMove(SDL_Rect yourTank, vector<Enemy_Tank> enemy);
+        void Reborn(const SDL_Rect& yourTank, const vector<Enemy_Tank>& enemy);
+        void getMove(const SDL_Rect& yourTank, const vector<Enemy_Tank>& enemy);
         void Fire();
         void TankDraw();
 };
@@ -92,21 +92,18 @@ class My_Tank : public object
         int reloadTime;
         bool isMove;
 
-        My_Tank(int x, int y, int direction);
+        My_Tank(const int& x, const int& y, const int& direction);
         ~My_Tank();
 
-        void GetMove(SDL_Event event, const vector<Enemy_Tank> enemy);
+        void GetMove(const vector<Enemy_Tank>& enemy);
         void Fire();
         void TankDraw();
 };
 
-bool Impact(const SDL_Rect rA, const SDL_Rect rB);
 
+bool Impact(const SDL_Rect& rA, const SDL_Rect& rB);
 
-void checkObj(My_Tank &yourTank, vector<Enemy_Tank> &enemy);
-
-
-
+void checkObj(My_Tank& yourTank, vector<Enemy_Tank>& enemy);
 
 
 #endif // BASE_OBJECT

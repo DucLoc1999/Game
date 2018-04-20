@@ -3,7 +3,7 @@
 
 //ducngx95@...//
 //basic object
-SDL_Rect object::NewRect(int direction)
+SDL_Rect object::NewRect(const int& direction)
 {
     SDL_Rect newRect = this->rect;
     if(direction != this->dir && direction != STAND)
@@ -12,10 +12,10 @@ SDL_Rect object::NewRect(int direction)
     switch (direction)
         {
         case UP:
-            if(newRect.y >= this->step )
+            if(newRect.y > this->step + 32)
                 newRect.y -= this->step;
             else
-                newRect.y = 0;
+                newRect.y = 32;
             break;
         case DOWN:
             if(newRect.y + newRect.h + this->step <= SCREEN_HEIGHT)
@@ -24,7 +24,7 @@ SDL_Rect object::NewRect(int direction)
                 newRect.y = SCREEN_HEIGHT - newRect.h;
             break;
         case LEFT:
-            if(newRect.x >= this->step)
+            if(newRect.x > this->step)
                 newRect.x -= this->step;
             else
                 newRect.x = 0;
@@ -48,14 +48,14 @@ void object::Draw()
     case UP: degrees = 0; break;
     case DOWN: degrees = 180; break;
     case LEFT: degrees = 270; break;
-    default : degrees = 90;
+    case RIGHT: degrees = 90; break;
     }
     SDL_RenderCopyEx(render, texture, NULL, &this->rect, degrees, NULL, SDL_FLIP_NONE);
 }
 
 
 //bullet
-Bullet::Bullet(int x, int y, int direction, bool isenemy)
+Bullet::Bullet(const int& x, const int& y, const int& direction, const bool& isenemy)
 {
     this->texture = Bullet_Texture;
 
@@ -72,19 +72,18 @@ Bullet::Bullet(int x, int y, int direction, bool isenemy)
 
 Bullet::~Bullet()
 {
-
 }
 
 void Bullet::GetMove()
 {
     SDL_Rect r = this->rect;
-    if(r.x == 0 || r.y == 0 || r.x+r.w == SCREEN_WIDTH || r.y+r.h == SCREEN_HEIGHT)
+    if(r.x <= 0 || r.y <= 32  || r.x+r.w >= SCREEN_WIDTH || r.y+r.h >= SCREEN_HEIGHT)
         this->isShooting = false;
     else
         this->rect = this->NewRect(this->dir);
 }
 
-void Bullet::setPos(int x, int y, int direction)
+void Bullet::setPos(const int& x, const int& y, const int& direction)
 {
     this->rect.x = x;
     this->rect.y = y;
@@ -110,17 +109,17 @@ void Bullet::setPos(int x, int y, int direction)
 
 
 //enemy
-Enemy_Tank::Enemy_Tank(SDL_Rect yourTank, vector<Enemy_Tank> enemy)// constructor
+Enemy_Tank::Enemy_Tank(const SDL_Rect& yourTank, const vector<Enemy_Tank>& enemy)// constructor
 {
     this->texture = Enemy_Texture;
 
     SDL_QueryTexture(this->texture, NULL, NULL, &(this->rect.w), &(this->rect.h)); // lay con tro thong tin w, h
     this->rect.h = TANK_SIZE;
     this->rect.w = TANK_SIZE;
-    this->Reborn(yourTank, enemy);
     this->step = ENEMY_STEP;
     this->isEnemy = true;
-    this->rebornTime = ENEMY_REBORN_TIME;
+    this->deadTimes = 0;
+    this->Reborn(yourTank, enemy);
 
     for(int i = 0; i < AMO_SIZE; i++)
     {
@@ -131,13 +130,15 @@ Enemy_Tank::Enemy_Tank(SDL_Rect yourTank, vector<Enemy_Tank> enemy)// constructo
 
 Enemy_Tank::~Enemy_Tank()
 {
-
+    for(int i = AMO_SIZE; i >= 0; i--)
+        this->Bullet_Box[i].~Bullet();
+    this->Bullet_Box.clear();
 }
 
-void Enemy_Tank::Reborn(SDL_Rect yourTank, vector<Enemy_Tank> enemy)
+void Enemy_Tank::Reborn(const SDL_Rect& yourTank, const vector<Enemy_Tank>& enemy)
 {
     this->rect.x = rand()%(SCREEN_WIDTH - TANK_SIZE + 1);
-    this->rect.y = rand()%(SCREEN_HEIGHT - TANK_SIZE + 1);
+    this->rect.y = 32 + rand()%(SCREEN_HEIGHT - 32 - TANK_SIZE + 1);
 
     bool canSetRect = true;
     if(Impact(yourTank, this->rect))
@@ -163,15 +164,47 @@ void Enemy_Tank::Reborn(SDL_Rect yourTank, vector<Enemy_Tank> enemy)
             case 3: rdir = RIGHT; break;
         }
         this->dir = rdir;
+        this->reloadTime = RELOAD_TIME / 2 + rand() % (RELOAD_TIME / 2) + 30;
         this->life = ENEMY_LIFE;
-        this->thinkTime = ENEMY_THINK_TIME;
-        this->reloadTime = ENEMY_RELOAD_TIME / 2 + rand() % (ENEMY_RELOAD_TIME / 2);
+        this->thinkTime = ENEMY_THINK_TIME + 30;
+        this->rebornTime = ENEMY_REBORN_TIME;
+        this->point = 1;
+        this->reloadTimeRate = 1.2;
+
+        int n = rand() % (this->deadTimes + 1);
+
+        if(n <= 3)
+            this->texture = Enemy_Texture;
+
+        else if(n <= 7)
+        {
+            this->point = 2;
+            this->life = 2;
+            this->texture = Enemy_Texture1;
+        }
+        else if(n <= 10)
+        {
+            this->point = 3;
+            this->life = 2;
+            this->rebornTime = ENEMY_REBORN_TIME - 50;
+            this->reloadTimeRate = 1;
+            this->texture = Enemy_Texture2;
+        }
+        else
+        {
+            this->point = 4;
+            this->life = 3;
+            this->rebornTime = ENEMY_REBORN_TIME + 100;
+            this->reloadTimeRate = 0.8;
+            this->texture = Enemy_Texture3;
+        }
+
     }
     else
         this->life = 0;
 }
 
-void Enemy_Tank::getMove(SDL_Rect yourTank, vector<Enemy_Tank> enemy)
+void Enemy_Tank::getMove(const SDL_Rect& yourTank, const vector<Enemy_Tank>& enemy)
 {
     if(this->reloadTime <= 0 )
         this->Fire();
@@ -237,7 +270,7 @@ void Enemy_Tank::getMove(SDL_Rect yourTank, vector<Enemy_Tank> enemy)
                         this->rect = NewRect;
                 }
 
-            this->thinkTime = ENEMY_THINK_TIME;
+            this->thinkTime = ENEMY_THINK_TIME - point + 1;
         }
 
     this->reloadTime--;
@@ -250,7 +283,7 @@ void Enemy_Tank::Fire()
     for(; i < AMO_SIZE && this->Bullet_Box[i].isShooting; i++);
 
     this->Bullet_Box[i].setPos(this->rect.x, this->rect.y, this->dir);
-    this->reloadTime = ENEMY_RELOAD_TIME;
+    this->reloadTime = RELOAD_TIME * this->reloadTimeRate;
 }
 
 void Enemy_Tank::TankDraw()
@@ -267,7 +300,7 @@ void Enemy_Tank::TankDraw()
 
 
 //you
-My_Tank::My_Tank(int x, int y, int direction)// constructor
+My_Tank::My_Tank(const int& x, const int& y, const int& direction)// constructor
 {
     this->texture = YourTank_Texture;
 
@@ -281,7 +314,7 @@ My_Tank::My_Tank(int x, int y, int direction)// constructor
     this->step = MY_STEP;
     this->isEnemy = false;
     this->life = MY_LIFE;
-    this->reloadTime = MY_RELOAD_TIME;
+    this->reloadTime = RELOAD_TIME;
     this->isMove = false;
     this->score = 0;
 
@@ -295,16 +328,20 @@ My_Tank::My_Tank(int x, int y, int direction)// constructor
 
 My_Tank::~My_Tank()
 {
-
+    for(int i = AMO_SIZE; i >= 0; i--)
+        this->Bullet_Box[i].~Bullet();
+    this->Bullet_Box.clear();
 }
 
-void My_Tank::GetMove(SDL_Event event, const vector<Enemy_Tank> enemy)
+void My_Tank::GetMove(const vector<Enemy_Tank>& enemy)
 {
     int nDir = this->dir;
+    SDL_Rect screenRect = {0, 32, SCREEN_WIDTH, SCREEN_HEIGHT - 32};
+
     if(this->reloadTime > 0) reloadTime--;
 
-    if( event.key.keysym.sym == SDLK_SPACE && event.type == SDL_KEYUP && this->reloadTime <= 0)
-        {this->Fire();printf("fire");}
+    if(MouseIn(screenRect) && event.button.button == SDL_BUTTON_LEFT && event.button.type == SDL_MOUSEBUTTONDOWN && this->reloadTime <= 0)
+        this->Fire();
 
     else if(event.type == SDL_KEYUP)
         switch(event.key.keysym.sym)
@@ -348,13 +385,14 @@ void My_Tank::Fire()
     for(; i < AMO_SIZE && this->Bullet_Box[i].isShooting; i++);
 
     this->Bullet_Box[i].setPos(this->rect.x, this->rect.y, this->dir);
-    this->reloadTime = MY_RELOAD_TIME;
+    this->reloadTime = RELOAD_TIME;
 }
 
 void My_Tank::TankDraw()
 {
     if(this->life > 0)
         this->Draw();
+
     this->Draw();
     for(int i = 0; i < AMO_SIZE; i++)
         if(this->Bullet_Box[i].isShooting)
@@ -368,7 +406,7 @@ void My_Tank::TankDraw()
 
 
 //other game fuction
-bool Impact(const SDL_Rect rA, const SDL_Rect rB)  //SUA
+bool Impact(const SDL_Rect& rA, const SDL_Rect& rB)  //SUA
 {
     return (rA.x+rA.w > rB.x && rA.y+rA.h > rB.y  && rA.x < rB.x+rB.w && rA.y < rB.y+rB.h);
 }
@@ -381,10 +419,12 @@ void checkObj(My_Tank &yourTank, vector<Enemy_Tank> &enemy) // kieemr tra xem  x
             if(enemy[j].life > 0 && yourTank.Bullet_Box[i].isShooting && Impact(yourTank.Bullet_Box[i].rect,enemy[j].rect ))
             {
                 enemy[j].life--;
-                enemy[j].rebornTime = ENEMY_REBORN_TIME;
+                if(enemy[j].life <= 0)
+                {
+                    enemy[j].deadTimes++;
+                    yourTank.score += enemy[j].point;
+                }
                 yourTank.Bullet_Box[i].isShooting = false;
-                printf("enemy has been shooted : %d\n", enemy[j].life);
-                yourTank.score++;
             }
     for(int j = enemy.size() - 1; j >= 0; j--)
         for(int k = AMO_SIZE - 1; k >= 0; k--)
@@ -392,7 +432,6 @@ void checkObj(My_Tank &yourTank, vector<Enemy_Tank> &enemy) // kieemr tra xem  x
             {
                 yourTank.life--;
                 enemy[j].Bullet_Box[k].isShooting = false;
-                printf("you have been shooted : %d\n", yourTank.life);
             }
 
 }
