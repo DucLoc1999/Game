@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 #ifndef BASE_OBJECT
 #define BASE_OBJECT
 
