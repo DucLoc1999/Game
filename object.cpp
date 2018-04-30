@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 #include "myFunction.h"
 #include "object.h"
 
