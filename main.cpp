@@ -1,10 +1,9 @@
-<<<<<<< HEAD
 #include "object.h"
 
 bool Init()
 {
     if (SDL_Init(SDL_INIT_VIDEO ) < 0)
-=======
+	    
 #include "object.h"
 
 bool Init()
